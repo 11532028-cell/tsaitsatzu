@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>星語秘境 · 每日星座運勢查詢</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-deep: #090a14;
+      --bg-nebula: #161830;
+      --card-bg: rgba(24, 27, 52, 0.65);
+      --card-border: rgba(212, 175, 55, 0.35);
+      --gold-primary: #e8c766;
+      --gold-soft: rgba(232, 199, 102, 0.15);
+      --text-main: #f3f4f8;
+      --text-muted: #9ea4c0;
+      --accent-purple: #8b6df2;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Noto Sans TC', sans-serif;
+      background: radial-gradient(ellipse at top, var(--bg-nebula) 0%, var(--bg-deep) 75%);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 80px 20px 40px;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* 星空背景點綴 */
+    .stars {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image: 
+        radial-gradient(1.5px 1.5px at 15% 25%, #fff, transparent),
+        radial-gradient(1px 1px at 35% 65%, rgba(255,255,255,0.8), transparent),
+        radial-gradient(2px 2px at 72% 18%, var(--gold-primary), transparent),
+        radial-gradient(1.5px 1.5px at 85% 78%, #fff, transparent),
+        radial-gradient(1px 1px at 52% 42%, rgba(255,255,255,0.7), transparent),
+        radial-gradient(1.5px 1.5px at 22% 88%, var(--accent-purple), transparent),
+        radial-gradient(1px 1px at 90% 35%, #fff, transparent);
+      background-size: 350px 350px;
+      opacity: 0.75;
+      z-index: 0;
+    }
+
+    /* 右上角 28蔡 徽章 */
+    .top-right-badge {
+      position: fixed;
+      top: 20px;
+      right: 24px;
+      z-index: 100;
+      background: linear-gradient(135deg, rgba(232, 199, 102, 0.22), rgba(139, 109, 242, 0.22));
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--gold-primary);
+      color: var(--gold-primary);
+      padding: 8px 18px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 1rem;
+      letter-spacing: 0.1em;
+      box-shadow: 0 4px 20px rgba(232, 199, 102, 0.2);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      user-select: none;
+    }
+
+    .top-right-badge::before {
+      content: "✦";
+      font-size: 0.85rem;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 680px;
+      z-index: 1;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .en-title {
+      font-family: 'Cinzel', serif;
+      color: var(--gold-primary);
+      font-size: 0.9rem;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    h1 {
+      font-size: 2.1rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      background: linear-gradient(to right, #ffffff, var(--gold-primary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 10px;
+    }
+
+    header p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    /* 輸入卡片 */
+    .glass-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 28px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+    }
+
+    .input-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: flex-end;
+    }
+
+    .field {
+      flex: 1;
+      min-width: 210px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      color: var(--gold-primary);
+      margin-bottom: 8px;
+      letter-spacing: 0.05em;
+    }
+
+    input[type="date"] {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      background: rgba(11, 13, 28, 0.8);
+      color: var(--text-main);
+      font-family: inherit;
+      font-size: 1rem;
+      outline: none;
+      transition: border-color 0.25s;
+      color-scheme: dark;
+    }
+
+    input[type="date"]:focus {
+      border-color: var(--gold-primary);
+    }
+
+    button.btn-submit {
+      padding: 13px 28px;
+      border-radius: 12px;
+      border: none;
+      background: linear-gradient(135deg, #e8c766 0%, #c59b27 100%);
+      color: #131526;
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      white-space: nowrap;
+    }
+
+    button.btn-submit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(232, 199, 102, 0.35);
+    }
+
+    button.btn-submit:active {
+      transform: translateY(0);
+    }
+
+    /* 運勢結果區塊 */
+    .result-card {
+      margin-top: 24px;
+      display: none;
+      animation: fadeUp 0.5s ease forwards;
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(14px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .zodiac-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding-bottom: 18px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .zodiac-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .zodiac-symbol {
+      width: 54px;
+      height: 54px;
+      border-radius: 14px;
+      background: var(--gold-soft);
+      border: 1px solid var(--card-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      color: var(--gold-primary);
+    }
+
+    .zodiac-name {
+      font-size: 1.55rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .zodiac-meta {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .today-tag {
+      font-size: 0.8rem;
+      padding: 5px 12px;
+      border-radius: 8px;
+      background: rgba(139, 109, 242, 0.2);
+      border: 1px solid rgba(139, 109, 242, 0.45);
+      color: #d6cbff;
+    }
+
+    /* 運勢分數條 */
+    .scores-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+      margin-bottom: 22px;
+    }
+
+    @media (max-width: 520px) {
+      .scores-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .score-item {
+      background: rgba(12, 14, 29, 0.55);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
+      padding: 14px 16px;
+    }
+
+    .score-top {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.9rem;
+      margin-bottom: 8px;
+    }
+
+    .score-stars {
+      color: var(--gold-primary);
+      letter-spacing: 2px;
+    }
+
+    .progress-track {
+      height: 6px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #8b6df2, #e8c766);
+      border-radius: 999px;
+      transition: width 0.6s ease;
+    }
+
+    /* 運勢解析文字 */
+    .fortune-text {
+      background: rgba(232, 199, 102, 0.07);
+      border-left: 3px solid var(--gold-primary);
+      padding: 16px 18px;
+      border-radius: 0 12px 12px 0;
+      line-height: 1.75;
+      font-size: 0.96rem;
+      color: #e9ecf5;
+      margin-bottom: 20px;
+    }
+
+    /* 幸運資訊 */
+    .lucky-bar {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      text-align: center;
+    }
+
+    .lucky-box {
+      background: rgba(12, 14, 29, 0.55);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 12px 8px;
+    }
+
+    .lucky-label {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .lucky-val {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--gold-primary);
+    }
+
+    footer {
+      margin-top: 32px;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="stars"></div>
+
+  <!-- 右上角顯示 28蔡 -->
+  <div class="top-right-badge">28蔡</div>
+
+  <div class="container">
+    <header>
+      <div class="en-title">Celestial Horoscope</div>
+      <h1>星語秘境 · 每日星座運勢</h1>
+      <p>輸入您的出生日期，解鎖今日專屬星象指引與能量指數</p>
+    </header>
+
+    <main class="glass-card">
+      <div class="input-group">
+        <div class="field">
+          <label for="birthday">請選擇您的國曆生日</label>
+          <input type="date" id="birthday" value="2000-01-01">
+        </div>
+        <button class="btn-submit" id="analyzeBtn">占卜今日運勢</button>
+      </div>
+
+      <section class="result-card" id="resultCard">
+        <div class="zodiac-header">
+          <div class="zodiac-title-wrap">
+            <div class="zodiac-symbol" id="zSymbol">♑</div>
+            <div>
+              <div class="zodiac-name" id="zName">摩羯座</div>
+              <div class="zodiac-meta" id="zDateRange">12/22 - 01/19 · 土象星座</div>
+            </div>
+          </div>
+          <div class="today-tag" id="todayDateLabel">今日星象</div>
+        </div>
+
+        <div class="scores-grid">
+          <div class="score-item">
+            <div class="score-top">
+              <span>整體運勢</span>
+              <span class="score-stars" id="starOverall">★★★★★</span>
+            </div>
+            <div class="progress-track"><div class="progress-fill" id="barOverall" style="width: 90%"></div></div>
+          </div>
+          <div class="score-item">
+            <div class="score-top">
+              <span>愛情桃花</span>
+              <span class="score-stars" id="starLove">★★★★☆</span>
+            </div>
+            <div class="progress-track"><div class="progress-fill" id="barLove" style="width: 80%"></div></div>
+          </div>
+          <div class="score-item">
+            <div class="score-top">
+              <span>事業學業</span>
+              <span class="score-stars" id="starWork">★★★★★</span>
+            </div>
+            <div class="progress-track"><div class="progress-fill" id="barWork" style="width: 92%"></div></div>
+          </div>
+          <div class="score-item">
+            <div class="score-top">
+              <span>財富能量</span>
+              <span class="score-stars" id="starMoney">★★★★☆</span>
+            </div>
+            <div class="progress-track"><div class="progress-fill" id="barMoney" style="width: 78%"></div></div>
+          </div>
+        </div>
+
+        <div class="fortune-text" id="fortuneDesc">
+          今日星象能量穩定，適合規劃長期目標並整理手邊資源。保持開放心態與人交流，將能收穫意想不到的靈感與貴人相助。
+        </div>
+
+        <div class="lucky-bar">
+          <div class="lucky-box">
+            <div class="lucky-label">幸運色彩</div>
+            <div class="lucky-val" id="luckyColor">星夜藍</div>
+          </div>
+          <div class="lucky-box">
+            <div class="lucky-label">幸運數字</div>
+            <div class="lucky-val" id="luckyNumber">7</div>
+          </div>
+          <div class="lucky-box">
+            <div class="lucky-label">速配星座</div>
+            <div class="lucky-val" id="luckyMatch">金牛座</div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      星象指引僅供日常靈感參考 · Powered by 28蔡
+    </footer>
+  </div>
+
+  <script>
+    const ZODIAC_DATA = [
+      {
+        name: "摩羯座", symbol: "♑", range: "12/22 - 01/19", element: "土象星座",
+        colors: ["曜石黑", "琥珀棕", "深海藍"], matches: ["金牛座", "處女座", "天蠍座"],
+        advices: [
+          "務實的態度為你帶來穩健進展，今日適合處理細節繁瑣的任務，你的耐心將獲得主管或師長的肯定。",
+          "把步調稍微放慢，傾聽內心真實的需求。適度放鬆能讓你以更清晰的視野迎接接下來的挑戰。",
+          "貴人運悄然上升，主動與前輩或夥伴交流想法，能為目前卡關的計畫找到突破口。"
+        ]
+      },
+      {
+        name: "水瓶座", symbol: "♒", range: "01/20 - 02/18", element: "風象星座",
+        colors: ["電光藍", "銀白色", "薄荷綠"], matches: ["雙子座", "天秤座", "射手座"],
+        advices: [
+          "腦海中湧現許多跳脫框架的新點子，不妨隨手記錄下來，近期將有展現創意的絕佳舞台。",
+          "人際互動充滿驚喜，與志同道合的朋友聚會能為你帶來滿滿正能量與跨領域的合作契機。",
+          "保持獨立思考的優勢，但溝通時多一分柔軟與傾聽，能讓身邊的人更容易理解你的遠見。"
+        ]
+      },
+      {
+        name: "雙魚座", symbol: "♓", range: "02/19 - 03/20", element: "水象星座",
+        colors: ["迷霧紫", "海沫綠", "珍珠白"], matches: ["巨蟹座", "天蠍座", "摩羯座"],
+        advices: [
+          "直覺敏銳度極高的一天，跟隨內心的聲音做決定往往能避開不必要的繞路，藝術與創作靈感豐沛。",
+          "溫柔與體貼是你的超能力，但別忘了替自己保留獨處充電的時間，別讓他人情緒過度消耗自己。",
+          "感情與人際氛圍浪漫融洽，一句真誠的關心就能拉近彼此距離，適合安排一場輕鬆的約會。"
+        ]
+      },
+      {
+        name: "牡羊座", symbol: "♈", range: "03/21 - 04/19", element: "火象星座",
+        colors: ["烈焰紅", "暖陽橘", "亮金色"], matches: ["獅子座", "射手座", "水瓶座"],
+        advices: [
+          "行動力滿點！拖延已久的計畫適合在今日果斷啟動，你的熱情與衝勁會帶動整個團隊的士氣。",
+          "遇到突發狀況時先深呼吸三秒再回應，冷靜判斷能讓你展現大將之風，避免一時衝動。",
+          "偏財與好消息正在路上，保持樂觀積極的姿態，勇敢爭取你應得的表現機會。"
+        ]
+      },
+      {
+        name: "金牛座", symbol: "♉", range: "04/20 - 05/20", element: "土象星座",
+        colors: ["森林綠", "奶茶色", "香檳金"], matches: ["處女座", "摩羯座", "巨蟹座"],
+        advices: [
+          "財務與資源規劃傳來好消息，適合檢視收支或研究穩健理財，踏實累積讓你倍感安心。",
+          "品味生活的一天，享用一頓美食或整理居家空間，都能迅速提升你的幸福感與整體磁場。",
+          "工作上按部就班即可水到渠成，無須受外界雜音干擾，堅持自己的節奏就是最好的策略。"
+        ]
+      },
+      {
+        name: "雙子座", symbol: "♊", range: "05/21 - 06/21", element: "風象星座",
+        colors: ["檸檬黃", "天空藍", "淺灰色"], matches: ["天秤座", "水瓶座", "牡羊座"],
+        advices: [
+          "資訊流通順暢，你總能第一時間掌握關鍵消息。善用表達能力，今日在簡報、協商或社交場合無往不利。",
+          "好奇心帶你探索新領域，閱讀一本好書或學習新技能，會為你的日常注入新鮮活力。",
+          "同時處理多項任務時記得排定優先順序，專注完成最重要的兩件事，效率會比平時高出許多。"
+        ]
+      },
+      {
+        name: "巨蟹座", symbol: "♋", range: "06/22 - 07/22", element: "水象星座",
+        colors: ["月光銀", "柔粉色", "米白色"], matches: ["天蠍座", "雙魚座", "金牛座"],
+        advices: [
+          "內心充滿溫暖與安全感，與家人或摯友的深度對話能療癒近期的疲憊，帶來滿滿歸屬感。",
+          "工作上細心察覺到別人忽略的小細節，你的周全設想將成為團隊中最可靠的後盾。",
+          "相信自己的抗壓與適應力，把專注力放回當下能掌控的小事，好運正一步步向你靠近。"
+        ]
+      },
+      {
+        name: "獅子座", symbol: "♌", range: "07/23 - 08/22", element: "火象星座",
+        colors: ["帝王金", "日落橘", "酒紅色"], matches: ["牡羊座", "射手座", "雙子座"],
+        advices: [
+          "自信光芒自然散發，今日你很容易成為眾人焦點。大方分享你的成果與願景，將吸引強大盟友。",
+          "慷慨與熱情為你贏得好人緣，適時給予身邊夥伴讚美，會收穫雙倍的正向回饋。",
+          "愛情與娛樂運勢亮眼，下班後不妨安排有趣的休閒活動，盡情享受生活的精彩。"
+        ]
+      },
+      {
+        name: "處女座", symbol: "♍", range: "08/23 - 09/22", element: "土象星座",
+        colors: ["鼠尾草綠", "象牙白", "海軍藍"], matches: ["摩羯座", "金牛座", "天蠍座"],
+        advices: [
+          "邏輯清晰、分析力極佳，非常適合用來整理數據、優化流程或解決複雜難題，成就感十足。",
+          "對自己稍微寬容一些，完成比完美更重要，適度放手能讓事情發展得更加順暢自然。",
+          "健康與作息調整的好時機，規律飲食與伸展運動能讓你的精神狀態煥然一新。"
+        ]
+      },
+      {
+        name: "天秤座", symbol: "♎", range: "09/23 - 10/23", element: "風象星座",
+        colors: ["玫瑰粉", "淡雅藍", "珍珠灰"], matches: ["雙子座", "水瓶座", "獅子座"],
+        advices: [
+          "人際協調能力發揮到極致，你能巧妙化解意見分歧，成為團體中不可或缺的溝通橋樑。",
+          "美感與品味在線，今日適合打理造型或挑選質感小物，外在的精緻會帶動內在自信。",
+          "面對選擇時別猶豫太久，傾聽第一直覺並果斷踏出一步，結果會比你預想的更美好。"
+        ]
+      },
+      {
+        name: "天蠍座", symbol: "♏", range: "10/24 - 11/22", element: "水象星座",
+        colors: ["暗夜紫", "酒紅色", "玄鐵黑"], matches: ["巨蟹座", "雙魚座", "處女座"],
+        advices: [
+          "洞察力深刻，一眼就能看穿事情的核心本質。適合進行深度研究、策略布局或重要談判。",
+          "專注力驚人的一天，只要鎖定目標全力以赴，就能在短時間內交出令人驚豔的成績單。",
+          "敞開心扉與信任的人分享感受，真誠交流能讓關係更進一步，消除不必要的猜測。"
+        ]
+      },
+      {
+        name: "射手座", symbol: "♐", range: "11/23 - 12/21", element: "火象星座",
+        colors: ["寶石藍", "亮紫色", "活力橙"], matches: ["牡羊座", "獅子座", "天秤座"],
+        advices: [
+          "豁達樂觀的心態為你招來好運，即使遇到小插曲也能幽默化解，甚至轉化為新的契機。",
+          "適合規劃旅行、進修課程或接觸不同文化的事物，拓展眼界將為你帶來全新的啟發。",
+          "真誠直率的風格深受大家喜愛，勇敢說出你的理想，會有志同道合的夥伴響應你的號召。"
+        ]
+      }
+    ];
+
+    function getZodiacIndex(month, day) {
+      if ((month === 12 && day >= 22) || (month === 1 && day <= 19)) return 0; // 摩羯
+      if ((month === 1 && day >= 20) || (month === 2 && day <= 18)) return 1;  // 水瓶
+      if ((month === 2 && day >= 19) || (month === 3 && day <= 20)) return 2;  // 雙魚
+      if ((month === 3 && day >= 21) || (month === 4 && day <= 19)) return 3;  // 牡羊
+      if ((month === 4 && day >= 20) || (month === 5 && day <= 20)) return 4;  // 金牛
+      if ((month === 5 && day >= 21) || (month === 6 && day <= 21)) return 5;  // 雙子
+      if ((month === 6 && day >= 22) || (month === 7 && day <= 22)) return 6;  // 巨蟹
+      if ((month === 7 && day >= 23) || (month === 8 && day <= 22)) return 7;  // 獅子
+      if ((month === 8 && day >= 23) || (month === 9 && day <= 22)) return 8;  // 處女
+      if ((month === 9 && day >= 23) || (month === 10 && day <= 23)) return 9; // 天秤
+      if ((month === 10 && day >= 24) || (month === 11 && day <= 22)) return 10;// 天蠍
+      return 11; // 射手
+    }
+
+    // 根據今日日期與星座產生穩定且每日變化的運勢數值
+    function seededRandom(seed) {
+      const x = Math.sin(seed) * 10000;
+      return x - Math.floor(x);
+    }
+
+    function renderStars(score) {
+      const starCount = Math.max(3, Math.min(5, Math.round(score / 20)));
+      return "★".repeat(starCount) + "☆".repeat(5 - starCount);
+    }
+
+    function analyzeHoroscope() {
+      const input = document.getElementById("birthday").value;
+      if (!input) {
+        alert("請先選擇您的生日日期！");
+        return;
+      }
+
+      const parts = input.split("-");
+      const month = parseInt(parts[1], 10);
+      const day = parseInt(parts[2], 10);
+
+      const zIndex = getZodiacIndex(month, day);
+      const zodiac = ZODIAC_DATA[zIndex];
+
+      const today = new Date();
+      const dateSeed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
+      const baseSeed = dateSeed + zIndex * 37;
+
+      const sOverall = Math.floor(72 + seededRandom(baseSeed + 1) * 27);
+      const sLove = Math.floor(65 + seededRandom(baseSeed + 2) * 34);
+      const sWork = Math.floor(68 + seededRandom(baseSeed + 3) * 31);
+      const sMoney = Math.floor(65 + seededRandom(baseSeed + 4) * 34);
+
+      const adviceIdx = Math.floor(seededRandom(baseSeed + 5) * zodiac.advices.length);
+      const colorIdx = Math.floor(seededRandom(baseSeed + 6) * zodiac.colors.length);
+      const matchIdx = Math.floor(seededRandom(baseSeed + 7) * zodiac.matches.length);
+      const luckyNum = Math.floor(1 + seededRandom(baseSeed + 8) * 99);
+
+      document.getElementById("zSymbol").textContent = zodiac.symbol;
+      document.getElementById("zName").textContent = zodiac.name;
+      document.getElementById("zDateRange").textContent = `${zodiac.range} · ${zodiac.element}`;
+      document.getElementById("todayDateLabel").textContent = `${today.getFullYear()}/${today.getMonth() + 1}/${today.getDate()} 運勢`;
+
+      document.getElementById("starOverall").textContent = renderStars(sOverall);
+      document.getElementById("barOverall").style.width = `${sOverall}%`;
+
+      document.getElementById("starLove").textContent = renderStars(sLove);
+      document.getElementById("barLove").style.width = `${sLove}%`;
+
+      document.getElementById("starWork").textContent = renderStars(sWork);
+      document.getElementById("barWork").style.width = `${sWork}%`;
+
+      document.getElementById("starMoney").textContent = renderStars(sMoney);
+      document.getElementById("barMoney").style.width = `${sMoney}%`;
+
+      document.getElementById("fortuneDesc").textContent = zodiac.advices[adviceIdx];
+      document.getElementById("luckyColor").textContent = zodiac.colors[colorIdx];
+      document.getElementById("luckyNumber").textContent = luckyNum;
+      document.getElementById("luckyMatch").textContent = zodiac.matches[matchIdx];
+
+      const card = document.getElementById("resultCard");
+      card.style.display = "none";
+      void card.offsetWidth; // 重新觸發動畫
+      card.style.display = "block";
+    }
+
+    document.getElementById("analyzeBtn").addEventListener("click", analyzeHoroscope);
+  </script>
+</body>
+</html>
